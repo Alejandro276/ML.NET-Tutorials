@@ -6,7 +6,7 @@ using static Microsoft.ML.DataOperationsCatalog;
 //dataset file path
 string _dataPath = Path.Combine(Environment.CurrentDirectory, "data", "yelp_labelled.txt");
 
-MLContext mlContext = new MLContext();
+MLContext mlContext = new();
 TrainTestData splitDataView = LoadData(mlContext);
 
 ITransformer model = BuildAndTrainModel(mlContext, splitDataView.TrainSet);
@@ -30,30 +30,29 @@ Console.ReadKey();
 void UseModelWithBatchItems(MLContext mlContext, ITransformer model)
 {
     IEnumerable<SentimentData> sentiments = new[]
-{
-    new SentimentData
     {
-        SentimentText = "This was a horrible meal"
-    },
-    new SentimentData
-    {
-        SentimentText = "I love this spaghetti."
-    }
-};
+        new SentimentData
+        {
+            SentimentText = "This was a horrible meal"
+        },
+        new SentimentData
+        {
+            SentimentText = "I love this spaghetti."
+        }
+    };
     IDataView batchComments = mlContext.Data.LoadFromEnumerable(sentiments);
 
     IDataView predictions = model.Transform(batchComments);
 
     // Use model to predict whether comment data is Positive (1) or Negative (0).
     IEnumerable<SentimentPrediction> predictedResults = mlContext.Data.CreateEnumerable<SentimentPrediction>(predictions, reuseRowObject: false);
-    Console.WriteLine();
 
-    Console.WriteLine("=============== Prediction Test of loaded model with multiple samples ===============");
+    Console.WriteLine("\n=============== Prediction Test of loaded model with multiple samples ===============\n");
     foreach (SentimentPrediction prediction in predictedResults)
     {
         Console.WriteLine($"Sentiment: {prediction.SentimentText} | Prediction: {(Convert.ToBoolean(prediction.Prediction) ? "Positive" : "Negative")} | Probability: {prediction.Probability} ");
     }
-    Console.WriteLine("=============== End of predictions ===============");
+    Console.WriteLine("\n=============== End of predictions ===============\n");
 }
 
 
@@ -74,13 +73,12 @@ void UseModelWithSingleItem(MLContext mlContext, ITransformer model)
 
     //The Predict() function makes a prediction on a single row of data.
     var resultPrediction = predictionFunction.Predict(sampleStatement);
-    Console.WriteLine();
-    Console.WriteLine("=============== Prediction Test of model with a single sample and test dataset ===============");
+    Console.WriteLine("\n=============== Prediction Test of model with a single sample and test dataset ===============\n");
 
     Console.WriteLine();
     Console.WriteLine($"Sentiment: {resultPrediction.SentimentText} | Prediction: {(Convert.ToBoolean(resultPrediction.Prediction) ? "Positive" : "Negative")} | Probability: {resultPrediction.Probability} ");
 
-    Console.WriteLine("=============== End of Predictions ===============");
+    Console.WriteLine("\n=============== End of Predictions ===============\n");
     Console.WriteLine();
 }
 
@@ -94,7 +92,7 @@ void UseModelWithSingleItem(MLContext mlContext, ITransformer model)
 //    Displays the metrics.
 void Evaluate(MLContext mlContext, ITransformer model, IDataView testSet)
 {
-    Console.WriteLine("=============== Evaluating Model accuracy with Test data===============");
+    Console.WriteLine("\n=============== Evaluating Model accuracy with Test data===============\n");
 
     //uses the Transform() method to make predictions for multiple provided input rows of a test dataset.
     IDataView predictions = model.Transform(testSet);
@@ -104,7 +102,7 @@ void Evaluate(MLContext mlContext, ITransformer model, IDataView testSet)
 
 
     Console.WriteLine();
-    Console.WriteLine("Model quality metrics evaluation");
+    Console.WriteLine("Model quality metrics evaluation\n");
     Console.WriteLine("--------------------------------");
     
     //The Accuracy metric gets the accuracy of a model, which is the proportion of correct predictions in the test set.
@@ -113,7 +111,7 @@ void Evaluate(MLContext mlContext, ITransformer model, IDataView testSet)
     Console.WriteLine($"Auc: {metrics.AreaUnderRocCurve:P2}");
     //The F1Score metric gets the model's F1 score, which is a measure of balance between precision and recall. You want the F1Score to be as close to one as possible.
     Console.WriteLine($"F1Score: {metrics.F1Score:P2}");
-    Console.WriteLine("=============== End of model evaluation ===============");
+    Console.WriteLine("\n=============== End of model evaluation ===============\n");
 }
 
 
@@ -129,12 +127,12 @@ ITransformer BuildAndTrainModel(MLContext mlContext, IDataView trainSet)
     //The SdcaLogisticRegressionBinaryTrainer is your classification training algorithm. This is appended to the estimator and accepts the featurized SentimentText (Features) and the Label input parameters to learn from the historic data.
     var estimator = mlContext.Transforms.Text.FeaturizeText(outputColumnName: "Features", inputColumnName: nameof(SentimentData.SentimentText)).Append(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(labelColumnName: "Label", featureColumnName: "Features"));
 
-    Console.WriteLine("=============== Create and Train the Model ===============");
+    Console.WriteLine("\n=============== Create and Train the Model ===============\n");
 
     //The Fit() method trains your model by transforming the dataset and applying the training.
     var model = estimator.Fit(trainSet);
 
-    Console.WriteLine("=============== End of training ===============");
+    Console.WriteLine("\n=============== End of training ===============\n");
     Console.WriteLine();
 
     return model;
